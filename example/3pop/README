@@ -1,0 +1,3 @@
+created using:
+python manyloci.py ms2 30 10 -t 20 -r 0 500 -I 3 10 10 10 -n 1 0.5 -n 2 0.25 -n 3 0.25 -T -M -q 500 -ej 0.1  3 2 -ej 4.0 2 1 > tree; migdata --quiet --modern < tree
+

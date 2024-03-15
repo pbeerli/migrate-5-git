@@ -1,0 +1,74 @@
+n-island model analysis of a linear stepping stone simulation
+Individual name        1     2     3     4     5     6     7     8     9    10   sim  estim/wrong  prob  diff
+?0BAG            All 1.000   -     -     -     -     -     -     -     -     -    1         1  0     1      0
+?1BAB            All 0.001 0.999   -     -     -     -     -     -     -     -    2         2  0     0.999  0.001
+?1BAG            All   -   1.000   -     -     -     -     -     -     -     -    2         2  0     1      0
+?1BAI            All   -   0.415 0.386 0.193 0.006   -     -     -     -     -    2         2  0     0.415  0.585
+?2BAA            All   -   0.483 0.517   -     -     -     -     -     -     -    3         3  0     0.517  0.483 
+?2BAG            All   -     -   1.000   -     -     -     -     -     -     -    3         3  0     1      0
+?8BAC            All   -     -     -     -     -     -   0.106 0.034 0.003 0.857  9        10  1     0.857  0.997  
+?3BAA            All   -   0.001   -   0.991 0.008   -     -     -     -     -    4         4  0     0.991  0.009
+?3BAB            All   -     -     -   1.000   -     -     -     -     -     -    4         4  0     1      0
+?3BAH            All   -     -     -   1.000   -     -     -     -     -     -    4         4  0     1      0
+?4BAG            All   -     -     -     -   1.000   -     -     -     -     -    5         5  0     1      0
+?4BAD            All   -     -     -   0.002 0.998   -     -     -     -     -    5         5  0     0.998  0.002
+?5BAD            All   -     -     -     -     -   1.000   -     -     -     -    6         6  0     1      0
+?5BAI            All   -     -     -     -     -   1.000   -     -     -     -    6         6  0     1      0
+?0BAC            All 1.000   -     -     -     -     -     -     -     -     -    1         1  0     1      0
+?9BAG            All   -     -     -     -     -     -     -     -   0.011 0.989 10        10  0     0.989  0.011
+?6BAH            All   -     -     -     -     -     -     -   1.000   -     -    7         8  1     1      1.000
+?6BAJ            All   -     -     -     -     -     -   1.000   -     -     -    7         7  0     1      0
+?6BAF            All   -     -     -     -     -     -   1.000   -     -     -    7         7  0     1      0
+?7BAB            All   -     -     -     -     -     -     -   1.000   -     -    8         8  0     1      0
+?7BAJ            All   -     -     -     -     -     -     -   1.000   -     -    8         8  0     1      0
+?7BAG            All   -     -     -     -     -     -     -   1.000   -     -    8         8  0     1      0
+?8BAH            All   -     -     -   0.002   -   0.001 0.001 0.140 0.798 0.060  9         9  0     0.798  0.202
+?8BAF            All   -     -     -     -     -     -     -     -   1.000   -    9         9  0     1      0
+?4BAJ            All   -     -     -     -   1.000   -     -     -     -     -    5         5  0     1      0
+?2BAH            All   -     -   1.000   -     -     -     -     -     -     -    3         3  0     1      0
+?9BAA            All   -     -     -     -     -     -     -     -     -   1.000 10        10  0     1      0  
+?9BAJ            All   -     -     -     -     -     -     -     -     -   1.000 10        10  0     1      0
+?0BAH            All 1.000   -     -     -     -     -     -     -     -     -    1         1  0     1      0
+?5BAG            All   -     -     -     -     -   1.000   -     -     -     -    6         6  0     1      0        
+
+total 100 samples with 10 loci (1000bp) from a linear stepping stone model 1-2-3-4-5-6-7-8-9-10 with a 10x smaller migration rate
+between 5 and 6 compared to the rest. The inference was using an n-island model
+30 individuals were force to population assignment: 2 were misclassified one in population 7 to 8 and one in populaiton 9 to 10;
+Several individuals were added to a another population, for example individual ?0BAH was added to population 10, despite that
+it was correctly assigned to population 1.
+
+Assuming the stepping stone model that was used to simulate the data
+Individual name        1     2     3     4     5     6     7     8     9    10   sim  estim/wrong  prob  diff
+?0BAG            All 1.000   -     -     -     -     -     -     -     -     -    1         1  0     1      0	  
+?1BAB            All   -   1.000   -     -     -     -     -     -     -     -    2         2  0     1      0 
+?1BAG            All   -   1.000   -     -     -     -     -     -     -     -    2         2  0     1      0	  
+?1BAI            All   -   0.868   -   0.132   -     -     -     -     -     -    2         2  0     0.868  0.132 
+?2BAA            All   -   0.062 0.938   -     -     -     -     -     -     -    3         3  0     0.938  0.062 
+?2BAG            All   -     -   1.000   -     -     -     -     -     -     -    3         3  0     1      0	  
+?8BAC            All   -     -     -     -     -     -     -   0.696 0.304   -    9         8 -1     0.696  0.304 
+?3BAA            All   -     -     -   1.000   -     -     -     -     -     -    4         4  0     1      0 
+?3BAB            All   -     -     -   1.000   -     -     -     -     -     -    4         4  0     1      0	  
+?3BAH            All   -     -     -   1.000   -     -     -     -     -     -    4         4  0     1      0	  
+?4BAG            All   -     -     -     -   1.000   -     -     -     -     -    5         5  0     1      0	  
+?4BAD            All   -     -     -   0.001 0.999   -     -     -     -     -    5         5  0     0.999  0.001 
+?5BAD            All   -     -     -     -     -   0.993 0.006 0.001   -     -    6         6  0     0.993  0.007	  
+?5BAI            All   -     -     -     -     -   1.000   -     -     -     -    6         6  0     1      0	  
+?0BAC            All 1.000   -     -     -     -     -     -     -     -     -    1         1  0     1      0	  
+?9BAG            All   -     -     -     -     -     -     -     -   0.533 0.467 10         9 -1     0.533  0.467 
+?6BAH            All   -     -     -     -     -     -   0.027 0.973   -     -    7         8  1     0.973  0.027 
+?6BAJ            All   -     -     -     -     -     -   1.000   -     -     -    7         7  0     1      0	  
+?6BAF            All   -     -     -     -     -   0.015 0.985   -     -     -    7         7  0     0.985  0.027	  
+?7BAB            All   -     -     -     -     -     -     -   1.000   -     -    8         8  0     1      0	  
+?7BAJ            All   -     -     -     -     -     -     -   1.000   -     -    8         8  0     1      0	  
+?7BAG            All   -     -     -     -     -     -     -   1.000   -     -    8         8  0     1      0	  
+?8BAH            All   -     -     -     -     -     -     -   0.027 0.973   -    9         9  0     0.973  0.027 
+?8BAF            All   -     -     -     -     -     -     -     -   1.000   -    9         9  0     1      0	  
+?4BAJ            All   -     -     -   1.000   -     -     -     -     -     -    5         5  0     1      0	  
+?2BAH            All   -     -   1.000   -     -     -     -     -     -     -    3         3  0     1      0	  
+?9BAA            All   -     -     -     -     -     -     -     -     -   1.000 10        10  0     1      0  	  
+?9BAJ            All   -     -     -     -     -     -     -     -     -   1.000 10        10  0     1      0	  
+?0BAH            All 1.000   -     -     -     -     -     -     -     -     -    1         1  0     1      0	  
+?5BAG            All   -     -     -     -     -   1.000   -     -     -     -    6         6  0     1      0     
+
+out of 30 3 misclassified, but overall stronger assignment, ?6BAH, ?8BAC, ?9BAG, the first two are also misclassified
+in the n-island model.

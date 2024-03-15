@@ -1,0 +1,16 @@
+Look at the fasta file, these files came straight out of the stacks pipeline,
+I can get the pipeline, if you need it.
+then execute 
+
+for Peter Beerli's stacks2migrate.py use:
+
+cat example.fasta | python stacks2mig.py 
+
+this will generate a migrate infile
+
+
+for Paul Maier's fasta2genotype.py use
+
+<this will come -- I need to contact him about the additional files>
+
+

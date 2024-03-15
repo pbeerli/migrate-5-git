@@ -1,0 +1,20 @@
+  2 3 test snp data
+ 1 1 1
+ 2 pop1
+ a          A
+ b          A
+ a          A
+ b          W
+ a          A
+ b          A
+ 3 pop2
+ c          A
+ d          A
+ e          T
+ c          A
+ d          A
+ e          T
+ c          R
+ d          A
+ e          R
+ 

@@ -1,0 +1,98 @@
+PARALLELIZED MIGRATEA
+====================
+Peter Beerli
+beerli@fsu.edu
+[updated March 2024]
+
+Contents:
+This text describes how you can improve the performance of migrate on most modern 
+computers with multiple cores or on computer clusters (adhoc:  e.g. your lab, or
+high performance computing center). You can parallelize migrate runs by using a 
+virtual parallel architecture with a message-passing interface (MPI).
+
+The MPI-version runs fine on single MacOSX machines, dedicated clusters of Linux machines, 
+and (potentially) windows workstations. I use the freely available openmpi package (http://openmpi.org) 
+for the compile and runtime parallel environment. I suggest to use openmpi because it is  easy to install on macs and on 
+linux clusters and even windows (as an alternative use MPICH2). 
+
+
+
+(1) - Download OPENMPI from  http://www.openmpi.org 
+    - install OPENMPI on all machines (if this is to complicated for you ask a
+      sysadmin or other guru to help, the openmpi documentation _is_ helpful.
+      [On computer cluster you certainly will need to talk to the system administrator]
+
+    - read the openmpi documentation
+
+    - LINUX: change into the migrate-VERSION directory
+      configure and then use "make mpis", a binary named migrate-n-mpi
+      will be created.
+      MAC: follow the Linux instructions
+      WINDOWS: use the migrate-n-mpi.exe binary, its compilation is more
+      tricky and currently I have no windows compilation instructions.
+      If you want to try, use the makefilempi.msvc file in the src directory.
+    
+(2) Try to run the following command.
+    cd into the example directory (I assume here that you have src and example
+    on the same hierarchical level and that the executable is still in src:  
+    
+     mpirun  -np 7 --oversubscribe ../src/migrate-n-mpi parmfile.testbayes
+     6 loci can get analyzed at once,
+     the log is not very comprehensive because all 7 processes
+     write to the same console, 7 because there is one master-node
+     who does only scheduling, 6 worker-nodes
+     do the actual tree rearrangements and all calculations.
+     the number you specify has nothing to do with the physical computers,
+     OPENMPI can run several nodes on a single CPU (for example my current mac laptop has 10 cores on a single chip)
+
+(3) On a cluster you need to become familiar with their batch system (often it is slurm), use one of the tutorials
+    at your installations, a slurm script at our system looks like this, it would run 512 mpi-nodes in parallel.
+
+    #!/bin/bash
+    ####### script to run migrate on a batch queue using SLURM
+    #SBATCH -o parmfile.log
+    #SBATCH -t 4:00:00	
+    #SBATCH --ntasks=512 # Number of MPI tasks (i.e. processes)
+    #SBATCH --cpus-per-task=1            # Number of cores per MPI task
+    #SBATCH --distribution=cyclic:cyclic # Distribute tasks cyclically first among nodes
+    export PATH=.:~/bin:$PATH
+    echo $PATH
+    cd /path/to/my/directory
+    module purge;	
+    module load gnu openmpi
+    srun -n 512 /gpfs/home/beerli/scratch/migrate-5/migrate-n-mpi parmfile -nomenu
+
+
+
+good luck
+
+Peter
+<beerli@fsu.edu>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

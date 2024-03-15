@@ -1,0 +1,558 @@
+#------------------------------------------------------
+# Bayesian estimation 
+# of divergence time and/or migration rate and
+# effectice population size using
+# a Metropolis-Hastings Monte Carlo algorithm        
+# 
+# In case you want to change something
+# edit Makefile.in and run configure again AND
+# notify me, so that I can change the configure script.
+# 
+# this Makefile was produced with configure:
+# Makefile.in -> configure -> Makefile
+#
+# $Id: Makefile.in 2170 2013-09-19 12:08:27Z beerli $ 
+#------------------------------------------------------
+# Migrate and this file is distribured under the
+# MIT open source license.
+#------------------------------------------------------
+# Peter Beerli 2002-2003, Seattle
+# Peter Beerli 2004-2018, Tallahassee
+# beerli@fsu.edu
+#------------------------------------------------------
+.SUFFIXES:
+.SUFFIXES: .o .c .cpp .h
+srcxdir = src
+randdir=SFMT-src-1.5.1
+VPATH=$(srcxdir):$(randdir)
+#######################################################
+MIGRATEVERSION    = 5.0.5
+MIGRATESUBVERSION = March-15-2024
+MIGRATEGITVERSION = $(shell . ./showgit.sh)
+#######################################################
+prefix            = /usr/local
+exec_prefix       = ${prefix}
+INSTALLDIR        = ${exec_prefix}/bin #/usr/local/bin
+MANPAGEDIR        = ${prefix}/man/man1 #/usr/local/man/man1
+# Source of manpage migrate.1 -----------------------
+# not up to date
+MANPAGE           = migrate.1
+#----------------------------------------------------
+# programs specified through configure
+ARCH              = 
+MACOSVERSION      = 
+# for old macs try this alone first
+#MACOSVERSION = -mmacosx-version-min=10.6
+#
+SYSTEM		  = osx
+SYSTEMVERSION     = 
+EXCEPTIONS	  = 
+STDCPLUS	  = -lstdc++	
+#
+CC                = clang
+CXX               = clang
+INSTALL           = /usr/bin/install -c
+TAR               = tar
+MPICC             = mpicc
+GMAKE		  = gmake
+#
+ZLIBTARGET        = zlibsystem
+ZLIB              = -lz
+ZLIBINCL          = 
+ZLIBHARUINCL      = 
+ZLIBDIR           = 
+NOZLIB            = 
+HAVE_ZNZ          =  -DHAVE_ZLIB -DZNZ
+#----------------------------------------------------
+#
+# compile flags
+# outcommented ones are for specific systems that are 
+# not supported well through my configure script 
+# or then use different modules in the program:
+# current default is using Mersenne-Twister as random number generator
+#
+CPUTYPE           = aarch64
+OSTYPE            = MacOS_14.4
+#
+# use Mersenne twister random number generator
+CFLAGS_MT         = -DMERSENNE_TWISTER -DSFMT_MEXP=19937 -D_REENTRANT -I$(randdir)
+MT_FILES          = SFMT.c
+#
+# to optimize Mersenne-Twister random number generator use ./configure --enable-sse2 on INTEL
+HARDWARECFLAGS    =  
+#
+#
+PAPERFORMAT       = -DLETTERPAPER
+# options:
+# -DNEWVERSION       new stuff (use this)
+# -DNEXUSTREE        the treefile are in NEXUS format instead of NEWICK
+#                    this allows to use figtree to look at the trees
+# -DHAVE_ZLIB -DZNZ  allows the compression of bayesallfiles when the are named using the .gz extension 
+#
+# several experimental flags are available but you are discouraged to use them:
+# they are research target and often do not work and (worse) can give wrong results
+# -DTHERMOCHECK prints heated likelihood into mixfile (needs to be added the parmfile)
+#NEWSTUFF          = -DNEWVERSION
+NEWSTUFF          = 
+COMMONFLAGS       = $(ARCH) $(MACOSVERSION) $(NEWSTUFF) $(HAVE_ZNZ) -DNEXUSTREE -DHIGHBITS -DHAVE_CONFIG_H -DHAVE_MALLOCWRAP $(CFLAGS_MT) $(HARDWARECFLAGS)
+VALGRINDCOMMONFLAGS       = $(ARCH) $(MACOSVERSION) $(NEWSTUFF) $(HAVE_ZNZ) -DHIGHBITS -DHAVE_CONFIG_H -DHAVE_MALLOCWRAP $(CFLAGS_MT)
+#
+# combine the common flags with the version number and subversion number
+COMMONVFLAGS      =  $(COMMONFLAGS)  -DMIGRATESUBVERSION=\"\\\"$(MIGRATESUBVERSION)\\\"\"
+CFLAGS            = -O3 -fvectorize  -funroll-loops -Daarch64  $(TARGET) -DNDEBUG $(COMMONVFLAGS) -DMIGRATEVERSION=\"\\\"$(MIGRATEVERSION)(git:$(MIGRATEGITVERSION))\\\"\"
+# -------------------------------------------------------------------------------------------
+# configure may fail to put in the correct cflags for these system, if that is so uncomment
+# the appropriate flags
+#
+# IBM xlc compiler
+# CC              = xlc
+# CFLAGS_XLC      = -O3 -Q -qunroll -qalloca -qhot -qipa -qthreaded -qpluscmt -q inline
+# CFLAGS          = $(CFLAGS_XLC) -D$(CPU) $(COMMONVFLAGS)  -DMIGRATEVERSION=\"\\\"$(MIGRATEVERSION)\\\"\"
+# INTEL icc compiler
+# CC = icc
+# CFLAGS          = -fast $(COMMONVFLAGS) -DMIGRATEVERSION=\"\\\"$(MIGRATEVERSION)\\\"\"
+#
+#
+# Flags that are used when multi-threading 
+THREADCFLAGS      = -D_REENTRANT -DPTHREADS
+#
+# need to compile the haru PDF library
+PRETTYCFLAGS      = -DNOJPEG -DNOPNG $(NOZLIB) -Iharu -DPRETTY $(PAPERFORMAT) $(ZLIBINCL)
+#
+# DEBUG FLAGS --- you should not need to use those
+# if you have not clang and want to debug, you need to know
+# how to change the cflags yourself:  options in here are not known to all compilers
+DEBUGCFLAGS       =  -fno-omit-frame-pointer -g -Wall -Weverything -Wno-poison-system-directories -Wno-padded -DDEBUG $(COMMONVFLAGS) -DMIGRATEVERSION=\"\\\"$(MIGRATEVERSION)(git:$(MIGRATEGITVERSION))\\\"\"
+BEAGLEFLAGS       = -DBEAGLE -I/Users/beerli/src/beagle-lib -I. 
+CHECKERCFLAGS     = -g   $(COMMONFLAGS) -DMIGRATEVERSION=\"\\\"checker $(MIGRATEVERSION)\"\\\"
+DMALLOCCFLAGS     = -g -DDMALLOC_FUNC_CHECK  -DHIGHBITS -DHAVE_CONFIG_H  -DMIGRATEVERSION=\"\\\"$(MIGRATEVERSION)\"\\\"
+EFENCEFLAGS       = -g  -DHIGHBITS -DHAVE_CONFIG_H -DMIGRATEVERSION=\"\\\"efence $(MIGRATEVERSION)\"\\\"
+MEMDEBUGFLAGS     = -g  -DHIGHBITS -DHAVE_CONFIG_H -DMEMEDEBUG
+#
+# Library flags
+LIBS              =  -lz -lm 
+LDFLAGS           = 
+PDFLIB            = -Lharu -lharu $(STDCPLUS) 
+OTHERLIBS         = -lpthread   
+DMALLOCLIBS       = -lm -ldmalloc
+EFENCELIBS        = -lm -lefence
+MEMDEBUGLIBS      = -lm -lmemdb
+WINLIBS           =  -luser32 -Wl,--subsystem,console 
+#----------------------------------------------------
+#
+NAME              = migrate-n
+MPINAME           = migrate-n-mpi
+WINNAME           = migrate-n.exe
+WINNAME2	  = migrate-n-mpi.exe
+#on my mac but does it work for others? : fp_exception_glibc_extension.c
+CFILES            = assignment.c autotune.c bayes.c calculator.c correlation.c data.c     \
+                    growth.c haplotype.c hash.c heating.c histogram.c kernel_smooth.c laguerre.c main.c marginallike.c           \
+                    mcmc1.c mcmc2.c menu.c migevents.c migrate_mpi.c mutationmodel.c      \
+                    options.c pretty.c priors.c random.c reporter.c sequence.c seqerror.c \
+                    savitzky_golay.c \
+                    sighandler.c skyline.c skyparam.c  slice.c sort.c speciate.c tools.c  \
+                    tree.c uep.c watterson.c world.c znzlib.c mittag_leffler.c hermite_interpoly.c mittag_leffler_interpol_data.c romberg.c tables.c
+
+CPLUSFILES        = pretty-win32.cpp
+ 
+HFILES            = assignment.h autotune.h bayes.h calculator.h correlation.h data.h definitions.h \
+                    growth.h haplotype.h hash.h heating.h histogram.h kernel_smooth.h laguerre.h marginallike.h mcmc.h mcmc2.h menu.h       \
+                    migevents.h migrate_mpi.h migration.h mutationmodel.h options.h pretty.h        \
+                    priors.h random.h reporter.h sequence.h seqerror.h sighandler.h skyline.h       \
+                    savitzky_golay.h \
+                    skyparam.h slice.h sort.h speciate.h tools.h tree.h uep.h watterson.h world.h   \
+                    windows_timveval.h znzlib.h  mittag_leffler.h hermite_interpoly.h mittag_leffler_interpol_data.h romberg.h tables.h
+
+SOURCEFILES       = $(CFILES)
+ALLSOURCES        = $(CFILES) $(HFILES) $(CPLUSFILES)
+CONFIGUREEXEC     = configure configure.in config.guess\
+ config.sub config.status install-sh
+ADDITIONALFILES   = Makefile.in  src/conf.h.in src/conf.h INSTALL $(MANPAGE) $(CONFIGUREEXEC) jamfile showgit.sh
+DOCUMENTATION     = README HISTORY README_PARALLEL_GENERAL README_PARALLEL_WINDOWS migrate.html
+MIGRATEKIT        =
+#migshelltemplate.app migrate_kit src/shell.c install_migrate
+MIGRATESHELL      =
+#migrateshell.app
+EXAMPLEDIR        = example
+GRAPHICSDIR       = graphics
+#TESTSUITE         = testsuite
+CONTRIBDIR        = contribution
+HARUDIR           = haru
+MTDIR             = SFMT-src-1.5.1
+OFILES            = $(CFILES:.c=.o) $(CPLUSFILES:.cpp=.o) $(MT_FILES:.c=.o)
+INSTALL_DEPENDS   = $(INSTALLDIR) all
+INSTALLMPI_DEPENDS   = $(INSTALLDIR) mpis
+PRODUCT_DEPENDS   = $(OFILES)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< 
+.cpp.o:
+	$(CC) $(CFLAGS) -c $< 
+#-o $*.o
+#
+#
+#
+intro::
+	@echo "-----------------------------------------------------"
+	@echo "Migrate $(MIGRATEVERSION)"
+	@echo "please **read** the documentation"
+	@echo "this Makefile will produce an executable: migrate-n"
+	@echo "or migrate-n-mpi for the parallel version"
+	@echo "For more Makefile options type make help"
+	@echo " "
+	@echo "I am interested in getting email about any problems."
+	@echo "Please send all compile warning or error messages"
+	@echo "to beerli@fsu.edu [Peter Beerli]"
+	@echo "----------------------------------------------------"
+	$(MAKE) all
+
+
+help::
+	@echo "----------------------------------------------------------------------------"
+	@echo "Migrate $(MIGRATEVERSION)"
+	@echo "----------------------------------------------------------------------------"
+	@echo 'Makefile targets, the one with the [*] are suggested targets:'
+	@echo '  make        (creates the basic executable with added PDF support: migrate-n) [*]'
+	@echo '  make thread (+ allows parallel processing of heated chains on SMP: migrate-n)'
+	@echo '  make mpis   (assumes you use an MPI library [for exampe openmpi]: migrate-n-mpi)'
+	@echo '              (if you compiled the single cup version first, run make clean first!!' 
+	#@echo '  make mpis-thread (assumes you use MPI-lib and pthreads: migrate-n-mpi)'
+	@echo '----------------------------------------------------------------------------'
+	@echo '  make shorttest (runs a short [minutes] test'
+#	@echo '  make longtest (runs a long [hours] test for ML and Bayesian inference)'
+#	@echo '  make speedtest  (runs a speed test -- send the output to me at beerli@fsu.edu)' 
+	@echo '----------------------------------------------------------------------------'
+	@echo '  make clean (removes all *.o files but not the Makefile)'
+	@echo '  make distclean (removes all created files)'
+	@echo '  make install (installs the executables and man page [the man page is not up to date])'
+	@echo '  [there are other targets for debugging purposes, check the Makefile]'
+
+.SILENT:
+
+all::   haru  $(ZLIBTARGET)
+	@echo "Compile the main source files and create the executable"
+	$(MAKE) $(NAME) "CFLAGS = $(CFLAGS)  $(PRETTYCFLAGS)" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(LDFLAGS) $(EXCEPTIONS)" 
+
+thread:: haru $(ZLIBTARGET)
+	@echo "Compile the main source files and create the threaded executable"
+	$(MAKE) $(NAME) "CFLAGS = $(CFLAGS)  $(PRETTYCFLAGS) $(THREADCFLAGS)" "LIBS = $(OTHERLIBS) $(PDFLIB) $(LIBS)" "LDFLAGS = $(LDFLAGS) $(EXCEPTIONS)" 
+
+debug:: haru $(ZLIBTARGET)
+	@echo "Compile the main source files and create the DEBUG executable"
+	@echo "[Some systems will warn about macro definitions that start with _]"
+	@$(MAKE) $(NAME) "CFLAGS = $(DEBUGCFLAGS)  $(PRETTYCFLAGS)" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS =$(LDFLAGS) $(EXCEPTIONS)"
+
+mpis-thread:: haru $(ZLIBTARGET)
+	@echo "Compile the main source files and create the MPIparallel+threaded executable [this may not work]"	
+	$(MAKE) $(MPINAME) "CC=$(MPICC)" "CFLAGS = $(CFLAGS) $(PRETTYCFLAGS) $(THREADCFLAGS) -DMPI -DSLOWNET -DNEWREPLICANT -DMPIREPLICANT -DIPROBE" "LIBS = $(OTHERLIBS) $(PDFLIB) $(LIBS)"
+
+mpis:: haru $(ZLIBTARGET)
+	@echo "Compile the main source files and create the MPI-parallel executable"
+	make cleanmpi
+	$(MAKE) $(MPINAME) "CC=$(MPICC)" "CFLAGS = $(CFLAGS) -O3 $(PRETTYCFLAGS) -DMPI -DSLOWNET -DNEWREPLICANT -DMPIREPLICANT  -DMPIDATAONDEMAND -DIPROBE" "LIBS = $(PDFLIB) $(LIBS)"
+
+mpis-debug:: haru $(ZLIBTARGET)
+	@echo "Compile the main source files and create the DEBUG MPI executable"	
+	$(MAKE) $(MPINAME) "CC=$(MPICC)" "CFLAGS = $(DEBUGCFLAGS) $(PRETTYCFLAGS) -DMPI -DSLOWNET -DNEWREPLICANT -DMPIREPLICANT  -DMPIDATAONDEMAND " "LIBS = $(PDFLIB) $(LIBS)"
+	dsymutil $(MPINAME)
+
+mpis-ondemand:: haru $(ZLIBTARGET)
+	@echo "Compile the main source files and create the MPI-ondemand executable [EXPERIMENTAL! may not work]"
+	$(MAKE) $(MPINAME) "CC=$(MPICC)" "CFLAGS = $(DEBUGCFLAGS) $(PRETTYCFLAGS) -DMPI -DSLOWNET -DNEWREPLICANT -DMPIREPLICANT -DMPIDATAONDEMAND -DIPROBE" "LIBS = $(PDFLIB) $(LIBS)"
+	dsymutil $(MPINAME)
+
+mpis-thread-debug:: haru $(ZLIBTARGET)  
+	@echo "Compile the main source files and create the DEBUG/threaded executable"
+	$(MAKE) $(MPINAME) "CC=$(MPICC)" "CFLAGS = $(DEBUGCFLAGS) $(PRETTYCFLAGS) $(THREADCFLAGS) -DMPI -DSLOWNET -DNEWREPLICANT -DMPIREPLICANT -DIPROBE" "LIBS = $(OTHERLIBS) $(PDFLIB) $(LIBS)"
+
+# ------------------------------------------------------------------------------
+# PDF library target
+#
+haru::
+	@echo "Create the PDF library (libharu 1.x): [linker warnings are OK]"
+	(cd ./haru ; $(GMAKE) -f makefile.$(SYSTEM) "CC=$(CXX) $(TARGET)" "CPP=$(CC) $(TARGET)" "ARCH=$(ARCH)" "MACOSVERSION=$(MACOSVERSION)" "MYCPPFLAGS=$(PRETTYCFLAGS) -O3  $(ZLIBHARUINCL)")
+
+haru-clean::
+	(cd ./haru ; $(GMAKE) -f makefile.$(SYSTEM) clean)
+
+random-clean::
+	(cd ./$(randdir) ; rm -f *.o)
+
+src-clean::
+	(cd ./src ; rm -f *.o)
+
+zlibsystem::
+	@echo "Using system zlib architecture"
+
+zlib::
+	@echo "Compile the compression library (zlib)"
+	(cd ./zlib ; $(GMAKE))
+
+zlib-clean::
+	(cd ./zlib ; $(GMAKE) clean)
+
+lipo::
+	NAME = migrate-n-arm64
+	make haru-clean
+	make clean
+	TARGET = -target arm64-apple-macos11
+	make
+	NAME = migrate-n-x86_64
+	make haru-clean
+	make clean
+	TARGET = -target  x86_64-apple-macos10.12
+	make
+	lipo -create -output migrate-n migrate-n-x86_64 migrate-n-arm64
+
+#-------------------------------------------------------------------------------------------------
+# experimental development (you should not use these)
+longsum:: 
+	@echo "!!!!!!!!!!!!!! DO NOT USE THIS, DOES NOT WORK CORRECTLY YET !!!!!!"
+#	$(MAKE) $(NAME) "CFLAGS = $(DEBUGCFLAGS) -DLONGSUM"
+quasi-cud:: haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CFLAGS = $(DEBUGCFLAGS)  $(PRETTYCFLAGS) -DQUASIRANDOM -DCUD" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(EXCEPTIONS)" 
+quasi-korobov:: haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CFLAGS = $(DEBUGCFLAGS)  $(PRETTYCFLAGS) -DQUASIRANDOM -DKOROBOV" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(EXCEPTIONS)" 
+
+quasi-halton:: haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CFLAGS = $(DEBUGCFLAGS)  $(PRETTYCFLAGS) -DQUASIRANDOM -DHALTON" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(EXCEPTIONS)" 
+
+quasi-weyl:: haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CFLAGS = $(DEBUGCFLAGS)  $(PRETTYCFLAGS) -DQUASIRANDOM -DWEYL " "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(EXCEPTIONS)" 
+
+quasir-cud::   haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CFLAGS = $(CFLAGS)  $(PRETTYCFLAGS) -DQUASIRANDOM -DCUD" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(EXCEPTIONS)" 
+
+quasir-korobov::   haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CFLAGS = $(CFLAGS)  $(PRETTYCFLAGS) -DQUASIRANDOM -DKOROBOV" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(EXCEPTIONS)" 
+
+quasir-halton::   haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CFLAGS = $(CFLAGS)  $(PRETTYCFLAGS) -DQUASIRANDOM -DHALTON" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(EXCEPTIONS)" 
+
+quasir-weyl::   haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CFLAGS = $(CFLAGS)  $(PRETTYCFLAGS) -DQUASIRANDOM -DWEYL " "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS = $(EXCEPTIONS)" 
+
+
+# ------------------------------------------------------------------------------
+# more debugging targets
+checker:: haru $(ZLIBTARGET) 
+	$(MAKE) $(NAME) "CC=checkergcc" "CFLAGS = $(CHECKERCFLAGS)  $(PRETTYCFLAGS)" "LIBS = $(PDFLIB) $(LIBS)" "LDFLAGS =$(LDFLAGS)" 
+# ------------------------------------------------------------------------------
+# general maintenance targets
+#
+dox:
+	cat migrate.dox.in | sed 's/MIGRATEVERSION/$(MIGRATEVERSION)/g' | sed 's/MIGRATESUBVERSION/$(MIGRATESUBVERSION)/g' > migrate.dox
+	doxygen migrate.dox
+
+win::   
+	build-mig windows
+
+install:: $(INSTALL_DEPENDS)
+	$(INSTALL) $(IFLAGS) $(NAME) $(INSTALLDIR)
+
+installmpi:: $(INSTALLMPI_DEPENDS)
+	$(INSTALL) $(IFLAGS) $(MPINAME) $(INSTALLDIR)
+
+installman::
+	$(INSTALL) $(IFLAGS) $(MANPAGE) $(MANPAGEDIR)
+
+
+kit:: haru $(ZLIBTARGET)
+	make migrateshell
+
+migrateshell:: 
+	make clean
+	make 
+	make clean
+	make mpis
+	make clean
+	rm -rf ./migrateshell.app
+	rsync -a --exclude '.svn' --exclude '.git' migshelltemplate.app/* migrateshell.app/
+	rsync -a --exclude '.svn' --exclude '.git' migrate_kit migrateshell.app/		
+	gcc -O -o findshell src/shell.c
+	cp findshell migrateshell.app/migrate_kit/
+	cp $(NAME) migrateshell.app/migrate_kit/
+	cp $(MPINAME) migrateshell.app/migrate_kit/
+
+mac::
+	make migrateshell 
+	./install_migrate;
+
+clean::     
+	make haru-clean
+	make random-clean
+	make src-clean
+	-/bin/rm -rf  $(GARBAGE) *.o *.a gmon.out
+
+cleanmpi::     
+	-/bin/rm -rf  $(GARBAGE) *.o *.a gmon.out
+
+cleanall::     
+	make haru-clean
+	make zlib-clean  
+	make random-clean
+	make src-clean
+	-/bin/rm -rf  $(GARBAGE) *.o gmon.out
+
+distclean::      
+	make haru-clean
+	make zlib-clean  
+	/bin/rm -rf  $(GARBAGE) *.o conf.h gmon.out config.cache \
+        config.status Makefile $(NAME) *~ *.log migrate-n \
+        mig.efence mig.dmalloc;
+
+
+zip::
+	@echo '  $(TAR) and gzip to ../migrate-$(MIGRATEVERSION).zip.tar.gz'
+	-/bin/rm -i ../migrate-$(MIGRATEVERSION).zip.tar.gz 
+	$(TAR) cf -  $(ALLSOURCES) $(ADDITIONALFILES)  $(MTDIR) $(HARUDIR) zlib copy_mt_to_src \
+	$(GRAPHICSDIR)	$(MIGRATEKIT) \
+	$(EXAMPLEDIR) $(CONTRIBDIR) $(DOCUMENTATION) |				\
+        gzip > ../migrate-$(MIGRATEVERSION).zip.tar.gz
+
+fix::  
+	-/bin/chmod +x $(CONFIGUREEXEC) 	
+	-perl -p -i -e 's/NEWSTUFF          =/NEWSTUFF          = -DNEWVERSION -DBFDEBUG -DTESTINGDATE/g;' Makefile
+
+distrib::
+	$(MAKE) srcdistrib;
+	$(MAKE) bindistrib;
+
+srcdistrib::
+	@echo '  Creating Source Distribution version $(MIGRATEVERSION)'
+	@make haru-clean
+	@make zlib-clean
+	-/bin/chmod +x $(CONFIGUREEXEC) 
+	-/bin/rm -i ../migrate-$(MIGRATEVERSION).src.tar.gz
+	-/bin/rm -rf /tmp/migrate-tmp
+#	-/bin/mkdir -p /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)/src/$(TESTSUITE)  
+	-/bin/mkdir -p /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)/src/src  
+	-cd src;$(TAR) --exclude .svn --exclude .git -cf -  $(ALLSOURCES) | \
+	  (cd /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)/src/src ; $(TAR) xf -)
+	-$(TAR) --exclude .svn --exclude .git -cf -  $(ADDITIONALFILES) $(MTDIR) $(HARUDIR) $(MIGRATEKIT)  $(MIGRATESHELL) zlib copy_mt_to_src | \
+	  (cd /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)/src ; $(TAR) xf -)
+	-$(TAR) --exclude .svn --exclude .git -cf -  $(GRAPHICSDIR) $(EXAMPLEDIR) $(CONTRIBDIR) $(DOCUMENTATION) | \
+	  (cd /tmp/migrate-tmp/migrate-$(MIGRATEVERSION) ; $(TAR) xf -)
+#	-$(TAR) --exclude .svn --exclude .git -cf -  $(TESTSUITE)/infile* $(TESTSUITE)/parmfile* $(TESTSUITE)/runtest | \
+	  (cd /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)/src/$(TESTSUITE) ; $(TAR) xf -)
+	-(cd /tmp/migrate-tmp ; $(TAR) cf - migrate-$(MIGRATEVERSION) | \
+	gzip) > ../migrate-$(MIGRATEVERSION).src.tar.gz
+
+winzip::
+	@echo '  Creating Windows Distribution version $(MIGRATEVERSION)'
+	-/bin/rm -rf /tmp/migrate-tmp
+	-/bin/mkdir -p /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)
+	-$(TAR) --exclude .svn -cf -  $(WINNAME) $(WINNAME2) $(GRAPHICSDIR) $(EXAMPLEDIR) $(CONTRIBDIR) $(DOCUMENTATION)  | \
+	  (cd /tmp/migrate-tmp/migrate-$(MIGRATEVERSION) ; $(TAR) xf -)
+	-(cd /tmp/migrate-tmp ; zip -r migrate-$(MIGRATEVERSION).windows.zip migrate-$(MIGRATEVERSION))
+	-cp /tmp/migrate-tmp/migrate-$(MIGRATEVERSION).windows.zip .. 
+
+#haru $(ZLIBTARGET) all
+bindistrib:: 
+	@make bin-local-distrib "OSTYPE=$(OSTYPE)" "CPUTYPE=$(CPUTYPE)";
+
+
+bin-local-distrib:
+	@echo '  Creating binary $(OSTYPE)-$(CPUTYPE)-distribution version $(MIGRATEVERSION)'
+	-/bin/chmod +x $(CONFIGUREEXEC) 
+	-/bin/rm -i ../migrate-$(MIGRATEVERSION).$(OSTYPE)-$(CPUTYPE).tar.gz
+	-/bin/rm -rf /tmp/migrate-tmp
+	-/bin/mkdir -p /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)
+	#/src  
+	#-/bin/mkdir -p /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)/src/src  
+	#-cd src;$(TAR) --exclude .svn -cf -  $(ALLSOURCES) | \
+	#  (cd /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)/src/src ; $(TAR) xf -)
+	#-$(TAR) --exclude .svn -cf -  $(ADDITIONALFILES) $(MTDIR) $(HARUDIR) zlib copy_mt_to_src | \
+	#  (cd /tmp/migrate-tmp/migrate-$(MIGRATEVERSION)/src ; $(TAR) xf -)
+	-$(TAR)  --exclude .svn -cf - $(NAME) $(GRAPHICSDIR) $(EXAMPLEDIR) $(CONTRIBDIR) $(DOCUMENTATION) | \
+	  (cd /tmp/migrate-tmp/migrate-$(MIGRATEVERSION) ; $(TAR) xf -)
+	-(cd /tmp/migrate-tmp ; $(TAR) cf - migrate-$(MIGRATEVERSION) | \
+	gzip) > ../migrate-$(MIGRATEVERSION).$(OSTYPE)-$(CPUTYPE).tar.gz
+
+
+#----------------------------------------------------------
+# General basic maintenance
+$(OFILE_DIR) $(INSTALLDIR):
+	mkdir -p $@;
+
+SRCROOT:
+	@if [ -n "${$@}" ]; then exit 0; \
+	else echo Must define $@; exit 1; fi
+
+$(NAME): $(PRODUCT_DEPENDS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OFILES) $(LIBS) ;
+
+$(MPINAME): $(PRODUCT_DEPENDS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OFILES) $(LIBS) ;
+
+$(WINNAME): $(PRODUCT_DEPENDS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OFILES) $(OTHERLIBS) $(WINLIBS) ;
+
+
+$(EFENCENAME): $(PRODUCT_DEPENDS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OFILES) $(EFENCELIBS) $(LIBS) ;
+
+
+$(MEMDEBUGNAME): $(PRODUCT_DEPENDS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OFILES) $(MEMDEBUGLIBS) $(LIBS) ;
+
+
+$(DMALLOCNAME): $(PRODUCT_DEPENDS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OFILES) $(DMALLOCLIBS) $(LIBS) ;
+
+
+#----------------------------------------------------------------
+# test section
+# 
+#
+#
+test::
+	make single_short_test;
+
+mpitest::
+	make parallel_short_test;
+
+shorttest::
+	make single_short_test;
+
+
+single_short_test::
+	-mkdir -p test-s-s;
+	@echo "++++++++++++++++++++++++++++++++++++++++++++++++";
+	@echo " assumes that you have compiled using   \"make\" "
+	@echo " [sleep 10 seconds, press return to continue]";
+	@echo "++++++++++++++++++++++++++++++++++++++++++++++++";
+	@sleep 10;
+	@echo "this will take a while! Check the new directory test-s-s"
+	(cd test-s-s; \
+	cp ../example/parmfile* . ;\
+	cp ../example/infile.msat . ;\
+	sysctl machdep.cpu.brand_string | tee  single-short-test.log;\
+	time (../migrate-n parmfile.testbayes -nomenu 2>&1 | tee -a  single-short-test.log) &> time.log);
+#
+parallel_short_test::
+	-mkdir -p test-p-s;
+	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++";
+	@echo " assumes that you have compiled using \"make mpis\"";
+	@echo " this test may fail on your machine!";
+	@echo " because it makes some assumptions about your MPI";
+	@echo " [sleep 10 seconds, press return to continue]";
+	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++";
+	@sleep 10; 
+	cd test-p-s; \
+	cp ../example/parmfile* . ;\
+	cp ../example/infile.msat . ;\
+	mpirun -np 5 ../migrate-n parmfile.testml -nomenu;\
+	mpirun -np 5 ../migrate-n parmfile.testbayes -nomenu; 
+#
+#
+#
+#
+#----------------------------------------------------------------
+#
+#
+#
+#----------------------------------------------------------------
+# BEAGLE
+beagle:
+	$(MAKE) $(NAME) "CFLAGS = $(DEBUGCFLAGS)  $(BEAGLEFLAGS) $(PRETTYCFLAGS)" "LIBS = $(PDFLIB) $(LIBS)"  "LDFLAGS =$(LDFLAGS) $(EXCEPTIONS) `pkg-config /Users/beerli/src/beagle-lib/hmsbeagle-1.0.pc --cflags --libs` -framework OpenCL"
