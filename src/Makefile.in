@@ -26,8 +26,8 @@ srcxdir = src
 randdir=SFMT-src-1.5.1
 VPATH=$(srcxdir):$(randdir)
 #######################################################
-MIGRATEVERSION    = 5.0.5
-MIGRATESUBVERSION = March-15-2024
+MIGRATEVERSION    = 5.0.6
+MIGRATESUBVERSION = March-30-2024
 MIGRATEGITVERSION = $(shell . ./showgit.sh)
 #######################################################
 prefix            = @prefix@

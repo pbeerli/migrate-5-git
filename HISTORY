@@ -12,6 +12,8 @@ Version numbers: 4 major version [addition of forces, big rearrangements]
 -------------------------------------------------------------------------
                                      2024
 -------------------------------------------------------------------------
+March 30     Migrate 5.0.6 Fixed an issue with specifyfing specific prior
+             for individual parameters when using the parallel version.
 March 15     Migrate 5.0.5 Fixed an issue with specifyfing specific prior
              for individual parameters.
 -------------------------------------------------------------------------
