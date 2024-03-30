@@ -37,6 +37,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 priors.h supplies definitions of prior distributions specified in priors.c
 */
 #include "migration.h"
+extern void is_priorkind(prior_fmt *p, char *priorkind);
 extern MYREAL propose_uniform(MYREAL param, MYREAL minparam, MYREAL maxparam, MYREAL *r, MYREAL delta);
 extern MYREAL propose_uni_newparam (MYREAL param, long which, world_fmt * world, MYREAL *r);
 extern MYREAL propose_exp_newparam (MYREAL param, long which, world_fmt * world, MYREAL *r);

@@ -2271,7 +2271,7 @@ boolean set_proposal_menu(int paramgroup, option_fmt *options)
   }
 
 
-/// \brief returns priortype sting
+/// \brief returns priortype string
 /// returns a string that shows what prior distribution is set
 long  is_priortype(prior_fmt *p, long pnum, int priortype)
 {

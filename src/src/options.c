@@ -956,7 +956,7 @@ void
 print_options (FILE * file, world_fmt * world, option_fmt * options,
                data_fmt * data)
 {
-  const char text[8][20]={"All", "Multiplier", "Exponential", "Exp window", "Gamma", "Uniform", "Truncated Normal", "-"};
+  //  const char text[8][20]={"All", "Multiplier", "Exponential", "Exp window", "Gamma", "Uniform", "Truncated Normal", "-"};
   boolean is_same = FALSE;
   long i;
   long z = 0;
@@ -969,12 +969,14 @@ print_options (FILE * file, world_fmt * world, option_fmt * options,
   char mytext4[LINESIZE];
   char mytext5[LINESIZE];
   char mytext6[LINESIZE];
-  char seedgen[LINESIZE], spacer[LINESIZE];
+  char seedgen[LINESIZE],
+    spacer[LINESIZE];
   char *paramtgen, *parammgen;
   long from;
   long to;
   const long numpop = world->numpop;
   const long npp = world->numpop2 + world->bayes->mu + 2 * world->species_model_size;
+  char * priorkind = (char *) mycalloc(LINESIZE, sizeof(char));
   paramtgen = (char *) mycalloc(2*LINESIZE,sizeof(char));
   parammgen = paramtgen + LINESIZE;
   if (options->datatype != 'g')
@@ -1146,9 +1148,10 @@ print_options (FILE * file, world_fmt * world, option_fmt * options,
 	    break;
 
 	  }
-	fprintf (file, "%s %12s %10.10s %10.10s %10.10s %10.10s %7.7s %5.5f\n",
+	is_priorkind(ptr, priorkind);
+	fprintf (file, "%s %15s %10.10s %10.10s %10.10s %10.10s %7.7s %5.5f\n",
 		 s,
-		 text[is_priortype(p,pnum, ptr->type)],
+		 priorkind,
 		 show_priormin(mytext1, ptr),
 		 show_priormean(mytext2, ptr),
 		 show_priormax(mytext3, ptr),
@@ -1534,6 +1537,7 @@ print_options (FILE * file, world_fmt * world, option_fmt * options,
       }
     }
     myfree(paramtgen);
+    myfree(priorkind);
 }
 ///
 /// new start parameter procedures
@@ -3568,7 +3572,7 @@ void print_parm_prior(long *bufsize, char **buffer, long *allocbufsize, option_f
 			   ptr->ptypename, getpriortype(ptr->kind), mytext);
       else
 	print_parm_mutable(bufsize, buffer, allocbufsize, "bayes-priors= %s %li %li %s: %s",
-			   ptr->ptypename, ptr->from, ptr->to, getpriortype(ptr->kind), mytext);
+			   ptr->ptypename, ptr->from+1, ptr->to+1, getpriortype(ptr->kind), mytext);
     }
 #ifdef DEBUG
   printf("%i>print_parm_prior: %s\n",myID, *buffer);
@@ -4419,7 +4423,7 @@ print_parm_comment(&bufsize, buffer, allocbufsize, "Report M (=migration rate/mu
       print_parm_mutable(&bufsize, buffer, allocbufsize, "bayes-all-posteriors=NO");
     print_parm_proposal(&bufsize, buffer, allocbufsize, options);
     //
-    print_parm_prior(&bufsize, buffer, allocbufsize, options);
+    print_parm_prior(&bufsize, buffer, allocbufsize, options);  //<-- print priors into buffer
     print_parm_br(&bufsize, buffer, allocbufsize);
     //
     print_parm_hyperprior(&bufsize,buffer,allocbufsize,options);

@@ -34,6 +34,7 @@
 #include "migevents.h"
 #include "mutationmodel.h"
 #include "menu.h"
+#include "priors.h"
 #include "bayes.h"
 #include "speciate.h"
 #ifdef BEAGLE
@@ -3285,14 +3286,15 @@ void    pdf_print_distance_table (world_fmt * world, option_fmt * options, data_
 
 void pdf_print_options(world_fmt * world, option_fmt *options, data_fmt * data)
 {
-    const char text[8][20]={"All", "Multiplier", "Exponent.", "Exp window", "Gamma", "Uniform", "Truncated Normal", "-"};
+  //const char text[8][20]={"All", "Multiplier", "Exponent.", "Exp window", "Gamma", "Uniform", "Truncated Normal", "-"};
     char ptypename[100];
     double page_width;
     //page_height = *orig_page_height;
     left_margin = 55;
     double right_margin = 300.;
     double w;
-    double width[11]={0, 85, 100, 105, 150, 210, 260, 300, 360, 420, 480};
+    //    double width[11]={0, 85, 100, 105, 150, 210, 260, 300, 360, 420, 480};
+    double width[11]={0, -20, 100, 110, 180, 230, 290, 340, 400, 440, 500};
     double width2[2]={0, 240};
     char *title = "Options";
     long i, j, tt, ii;
@@ -3309,10 +3311,10 @@ void pdf_print_options(world_fmt * world, option_fmt *options, data_fmt * data)
     //char tostring[LINESIZE];
     char *paramtgen, *parammgen;
     boolean inheritance_table = FALSE;
+    char * priorkind = (char *) mycalloc(LINESIZE, sizeof(char));
     //xcode page_width = pdf_contents_get_width(canvas) - 120;
     paramtgen = (char *) mycalloc(2*LINESIZE,sizeof(char));
     parammgen = paramtgen + LINESIZE;
-
     if (options->datatype != 'g')
     {
         switch ((short) options->autoseed)
@@ -3667,6 +3669,8 @@ void pdf_print_options(world_fmt * world, option_fmt *options, data_fmt * data)
     pdf_advance(&page_height);
     pdf_print_tableline(width, "%s %s %s %s %s %s %s %s %s %s %s", "Parameter", " ", " ", " ", "Prior", "Minimum",  "Mean*",  "Maximum", "Delta", "Bins","UpdateFreq");
     pdf_advance(&page_height);
+    prior_fmt *p = options->bayes_priors;
+    long pnum = options->bayes_priors_num;
     long z=1;
     long numparam=0;
     for(i=0; i < options->bayes_priors_num; i++)
@@ -3678,40 +3682,42 @@ void pdf_print_options(world_fmt * world, option_fmt *options, data_fmt * data)
 	  numparam++;
       }
     sprintf(mytext5,"%5.5f", (world->options->choices[1] - world->options->choices[0])/numparam);
-    for(i=0; i < options->bayes_priors_num; i++)
+    for(i=0; i < pnum; i++)
       {
 	long pa=i;
-	switch(options->bayes_priors[i].type)
+	prior_fmt *ptr = &p[i];
+	switch(ptr->type)
 	  {
-	  case THETAPRIOR: 	  sprintf(ptypename,"%s","Theta");break;
-	  case GROWTHPRIOR: 	  sprintf(ptypename,"%s","Growth");break;
-	  case MIGPRIOR: 	  sprintf(ptypename,"%s",options->usem ? "M" : "xNm");break;
-	  case RATEPRIOR: 	  sprintf(ptypename,"%s","Rate modif.");break;
-	  case SPECIESTIMEPRIOR: 	  sprintf(ptypename,"%s","Splittime mean");break;
-	  case SPECIESSTDPRIOR: 	  sprintf(ptypename,"%s","Splittime std");break;
+	  case THETAPRIOR: 	  sprintf(ptypename,"%-s","Theta");break;
+	  case GROWTHPRIOR: 	  sprintf(ptypename,"%-s","Growth");break;
+	  case MIGPRIOR: 	  sprintf(ptypename,"%-s",options->usem ? "M" : "xNm");break;
+	  case RATEPRIOR: 	  sprintf(ptypename,"%-s","Rate modif.");break;
+	  case SPECIESTIMEPRIOR: 	  sprintf(ptypename,"%-s","Splittime mean");break;
+	  case SPECIESSTDPRIOR: 	  sprintf(ptypename,"%-s","Splittime std");break;
 	  }
 	if(shortcut(i,world,&pa))
 	  continue;
 	char fstr[4];
 	char tstr[4];
-	long from = options->bayes_priors[pa].from;
-	long to = options->bayes_priors[pa].to;
-	if (from== - 1)
-	  sprintf(fstr,"*");
+	long from = p[pa].from;
+	long to = p[pa].to;
+	if (from== -1)
+	  sprintf(fstr,"*  ");
 	else
-	  sprintf(fstr,"%li",from);
+	  sprintf(fstr,"%2li ",from+1);
 	if (to == - 1)
 	  sprintf(tstr,"*");
 	else
-	  sprintf(tstr,"%li",to);
-	
-	pdf_print_tableline(width, "%3li %s %s %s %s %s %5.5s %5.5s %5.5s %5.5s %s", z++ /*pa*/, ptypename, fstr, tstr,
-			    text[is_priortype(options->bayes_priors,options->bayes_priors_num, options->bayes_priors[pa].type)],
-			    show_priormin(mytext1, &options->bayes_priors[pa]),
-			    show_priormean(mytext2, &options->bayes_priors[pa]),
-			    show_priormax(mytext3, &options->bayes_priors[pa]),
-			    show_priordelta(mytext4, &options->bayes_priors[pa]),
-			    show_priorbins(mytext, &options->bayes_priors[pa]),
+	  sprintf(tstr,"%li",to+1);
+	is_priorkind(ptr, priorkind);
+	pdf_print_tableline(width, "%3li %s %s %s %s %s %5.5s %5.5s %9.9s %6.6s %s", z++ /*pa*/, ptypename, fstr, tstr,
+			    //text[is_priortype(options->bayes_priors,options->bayes_priors_num, options->bayes_priors[pa].type)],
+			    priorkind,
+			    show_priormin(mytext1, ptr),
+			    show_priormean(mytext2, ptr),
+			    show_priormax(mytext3, ptr),
+			    show_priordelta(mytext4, ptr),
+			    show_priorbins(mytext, ptr),
 			    mytext5
 			    );
 	pdf_advance(&page_height);
@@ -3872,6 +3878,9 @@ void pdf_print_options(world_fmt * world, option_fmt *options, data_fmt * data)
 
     //*orig_page_height = page_height;
     //*orig_left_margin = left_margin;
+    myfree(priorkind);
+    myfree(paramtgen);
+
 }
 
 

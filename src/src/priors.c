@@ -47,7 +47,7 @@ priors.c supplies prior distributions
 #endif
 
 extern int myID;
-
+void is_priorkind(prior_fmt *p, char *priorkind);
 MYREAL cdf_gamma(MYREAL a, MYREAL b, MYREAL x);
 MYREAL trunc_gamma_rand(MYREAL alpha, MYREAL beta, MYREAL lower, MYREAL upper);
 MYREAL normal_rand(MYREAL mean, MYREAL std);
@@ -980,6 +980,18 @@ void set_option_prior(prior_fmt **p, int type, MYREAL mini, MYREAL maxi, MYREAL 
   //  p->delta = (p->max - p->min)/b;
   (*p)->alpha = -1.0;
 }
+
+void is_priorkind(prior_fmt *p, char *priorkind)
+{
+  const char text[7][20] = {TUNIFORMPRIOR, TEXPPRIOR, TWEXPPRIOR, TMULTPRIOR, TGAMMAPRIOR, TNORMALPRIOR, TOTHER};
+  const int numkind = NUMPRIORKIND;
+  if (p->kind < NUMPRIORKIND)
+    strncpy(priorkind,text[p->kind],PRIORKINDLENGTH);
+  else
+    strncpy(priorkind,text[NUMPRIORKIND-1],PRIORKINDLENGTH);
+  return;
+}
+  
 
 prior_fmt * copy_option_prior(prior_fmt *pmodel, option_fmt *options, MYREAL ratemin)
 {

@@ -2217,8 +2217,9 @@ void my_start_eventtime(double age, world_fmt *world, node **nodelist, long *lin
       lineages[nodelist[i]->pop] -= 1;
       utime = eventtime_single(NULL, world, nodelist[i]->pop, 0, lineages, age, &event, &tox, &fromx);
       lineages[nodelist[i]->pop] += 1;
+      printf("%i: %f %f %li %li\n",i,utime,age,tox,fromx);
       // set lineages back to full tree
-      if (utime < *shortt)
+      if (utime <= *shortt)
 	{
 	  *shorti = i;
 	  *shortt = utime;
@@ -2283,7 +2284,10 @@ my_random_tree (world_fmt * world, long tips)
 	  maxsimtips++;
 	  zz++;
 	}
+      //printf("myrandomtree: lineages: %li %li %li ",lineages[0],lineages[1],lineages[2]);
       my_start_eventtime(age, world,nodelist,lineages,simtips,&shortt,&shorti,&shorte, &to, &from);
+      assert(shorte != ' ');
+      //printf(" |%c|\n",shorte);
       if (age < datelist[zz].age && age + shortt > datelist[zz].age && datelist[zz].age < (double) HUGE)
 	{
 	  age = datelist[zz].age;
