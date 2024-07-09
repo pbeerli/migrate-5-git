@@ -2217,7 +2217,7 @@ void my_start_eventtime(double age, world_fmt *world, node **nodelist, long *lin
       lineages[nodelist[i]->pop] -= 1;
       utime = eventtime_single(NULL, world, nodelist[i]->pop, 0, lineages, age, &event, &tox, &fromx);
       lineages[nodelist[i]->pop] += 1;
-      printf("%i: %f %f %li %li\n",i,utime,age,tox,fromx);
+      //printf("%i: %f %f %li %li\n",i,utime,age,tox,fromx);
       // set lineages back to full tree
       if (utime <= *shortt)
 	{
